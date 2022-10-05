@@ -33,34 +33,37 @@ secret_len = 0
 pad = ""
 
 while True:
-    print(pad)
     encrypted = encryptionRequest(URL, ENDPOINT, UCO, bytes(pad, "ascii"))
+    print(f"Pad len: {len(pad):02}:", end="")
     printHex(encrypted)
     new_len = len(encrypted)
     
     if (new_len != initial_len):
         secret_len = initial_len - (len(pad) - 1)
-        print("Secret len found!")
-        print(f"Pad size: {len(pad) - 1}")
-        print(f"Secret size: {secret_len}")
+        print(f"Found secret len: {secret_len}")
         break
+
     pad += "9"
 
 guess_data = "9" * initial_len
 padding = guess_data
 secret = ""
 
+#try and guess all secret characters one by one
 for i in range(0, secret_len):
-    padding    = padding[1:]
-    guess_data = guess_data[1:] + "9" # left "shift"
+    padding    = padding[1:]            #remove first character from padding
+    guess_data = guess_data[1:] + "9"   #left "shift" our guess data
+    
+    #go through all possible characters
     for c in POSSIBLE_CHARS:
-        guess_data = guess_data[:-1] + c
+        guess_data = guess_data[:-1] + c    #replace last character with new one
         print(f"Guess:   {guess_data}")
         print(f"padding: {padding}")
-        encrypted_guess = encryptionRequest(URL, ENDPOINT, UCO, bytes(guess_data + padding, "ascii"))
-        known   = encrypted_guess[:initial_len]                 #known cipher text that we created
-        unknown = encrypted_guess[initial_len:initial_len * 2]  #unknown cipher text that we are trying to guess
+        encrypted_guess = encryptionRequest(URL, ENDPOINT, UCO, bytes(guess_data + padding, "ascii"))   #get new data
+        known   = encrypted_guess[:initial_len]                                                         #known cipher text that we created
+        unknown = encrypted_guess[initial_len:initial_len * 2]                                          #unknown cipher text that we are trying to guess
         
+        #loop to next character on match
         if known == unknown:
             print(f"Match!!! - {c}")
             secret += c
@@ -69,4 +72,4 @@ for i in range(0, secret_len):
         print("No match found!!!")
         exit(1)
 
-print(f"Probable secret: {secret}")
+print(f"The secret is: {secret}")
