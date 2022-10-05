@@ -14,7 +14,7 @@ So I then created a 32B long 'guess' (enough space for the secret but needs to b
 Next I replaced the last character of the 'guess' string with a possible character (space or any lower and upper case letter) and made a request where the data is 'guess' concatenated with 'padding'.
 I now take 4 block (64 bytes) of data from the response. Because my data are prepanded before the secret, I actually know what first 63B of what I received is. This now leaves the last single byte to be a part of the secret.
 So all I need to do now is check, if my 32B long encrypted 'guess' contains the same data as the next 32B (which contain my padding + secret that fits to the block).
-    If they are different, I need to change the letter I am currently guessing and try again.
+    If they are different, I need to change the character I am currently guessing and try again.
     If they are the same, I found a letter which is contained in the secret. So next I need to rotate my 'guess' string to the left (so that the old guessed character is now second from the end) and add a new guess character. I also need to remove one more character from the padding (so it's now 30B) and repeate the request.
     New response will now containe 32B of my new guess, 30B of padding and 2B of secret data (from which I already know the first byte).
     Rince and repeate untill the entire secret is extracted.
