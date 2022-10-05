@@ -1,7 +1,7 @@
 I made a little program that does the extraction for me, so I might as well describe what it does, as that's how I came up with the solution and how I obtained the secret.
 
 
-First things first, AES encrypted block have size of 128bits -> 16bytes
+First things first, AES encrypted blocks have size of 128bits -> 16bytes
 
 1.
 First I wanted to find the length of the secret text. That is easily done by asking the server to encrypt my data of known length and looking at the length of received encrypted data (my data + secret + padding).
