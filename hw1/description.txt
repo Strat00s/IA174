@@ -1,0 +1,20 @@
+I made a little program that does the extraction for me, so I might as well describe what it does, as that's how I came up with the solution and how I obtained the secret.
+
+
+First things first, AES encrypted block have size of 128bits -> 16bytes
+
+1.
+First I wanted to find the length of the secret text. That is easily done by asking the server to encrypt my data of known length and looking at the length of received encrypted data (my data + secret + padding).
+If I send a request with data of zero length received data has length of 32B. I can then keep increasing the length of my data until the received data length finally changes -> secret text now overflows to a new block and the rest is padded with '\0'
+We can then substract the request data length and received data length (before the new block was added) and get the length of the secret text (23 characters).
+
+2.
+Next was the secret extraction. Because ECB mode encrypts each block seperately using the same key, blocks that containt the same data will result in the same cipher text.
+So I then created a 32B long 'guess' (enough space for the secret but needs to be a multiple of block length) and a 31B long 'padding' strings which were both filled with characters that can't exist in the secret text (e.g. '9').
+Next I replaced the last character of the 'guess' string with a possible character (space or any lower and upper case letter) and made a request where the data is 'guess' concatenated with 'padding'.
+I now take 4 block (64 bytes) of data from the response. Because my data are prepanded before the secret, I actually know what first 63B of what I received is. This now leaves the last single byte to be a part of the secret.
+So all I need to do now is check, if my 32B long encrypted 'guess' contains the same data as the next 32B (which contain my padding + secret that fits to the block).
+    If they are different, I need to change the letter I am currently guessing and try again.
+    If they are the same, I found a letter which is contained in the secret. So next I need to rotate my 'guess' string to the left (so that the old guessed character is now second from the end) and add a new guess character. I also need to remove one more character from the padding (so it's now 30B) and repeate the request.
+    New response will now containe 32B of my new guess, 30B of padding and 2B of secret data (from which I already know the first byte).
+    Rince and repeate untill the entire secret is extracted.
