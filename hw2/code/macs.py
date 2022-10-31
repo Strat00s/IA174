@@ -1,4 +1,5 @@
 import hashlib
+from keeloq import KeeLoq_CBC_enc
 
 def SHA1(msg: bytes) -> bytes:
     """
@@ -47,7 +48,7 @@ def MAC_KeeLoq(msg: bytes, K: bytes, MAC_size: int=4) -> bytes:
     :return: MAC of size MAC_size
     """
     # TODO: Task 1b Finish the implementation of MAC_KeeLoq function.
-    pass
+    return KeeLoq_CBC_enc(msg, b'\00\00\00\00', K)[-MAC_size:]
 
 def MAC_combined(msg: bytes, K: bytes, MAC_size=4) -> bytes:
     """
