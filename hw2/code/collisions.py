@@ -2,7 +2,7 @@ from typing import Tuple
 import secrets
 from macs import MAC_KeeLoq
 from utils import XOR
-from keeloq import KeeLoq_CBC_enc
+#from keeloq import KeeLoq_CBC_enc
 
 def MAC_Keeloq_collision(K: bytes, MAC_size: int) -> Tuple[bytes, bytes]:
     """
@@ -14,8 +14,8 @@ def MAC_Keeloq_collision(K: bytes, MAC_size: int) -> Tuple[bytes, bytes]:
     """
     text  = "12340f0f" + "0f0f" * (MAC_size // 4 - 2)   #generate variable size message depending on mac size
     ms1   = bytes(text, "utf-8")
-    state = KeeLoq_CBC_enc(ms1, b'\00\00\00\00', K)[:4] #get the first inner state
-    ms2   = XOR(state, ms1[4:8]) + ms1[8:]              #forge second message
+    state = MAC_KeeLoq(ms1[:4], K, 8)[:4]   #get the first inner state (second one contains padding)
+    ms2   = XOR(state, ms1[4:8]) + ms1[8:]  #forge second message
     return (ms1, ms2)
 
 
@@ -42,7 +42,7 @@ def MAC_combined_collision(Keeloq_MAC_size: int=4) -> Tuple[bytes, bytes, bytes,
     pass
 
 key      = b'\01\23\45\67\89\ab\cd\ef'
-mac_size = 4
+mac_size = 24
 messages = MAC_Keeloq_collision(key, mac_size)
 print(f"m1: {messages[0].hex()}")
 print(f"m2: {messages[1].hex()}")
