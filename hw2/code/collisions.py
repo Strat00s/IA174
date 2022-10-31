@@ -1,5 +1,8 @@
 from typing import Tuple
 import secrets
+from macs import MAC_KeeLoq
+from utils import XOR
+from keeloq import KeeLoq_CBC_enc
 
 def MAC_Keeloq_collision(K: bytes, MAC_size: int) -> Tuple[bytes, bytes]:
     """
@@ -9,8 +12,11 @@ def MAC_Keeloq_collision(K: bytes, MAC_size: int) -> Tuple[bytes, bytes]:
     :param MAC_size: the size in bytes of the final MAC
     :return: a tuple of two disctinct messages that have the same KeeLoq CBC-MAC
     """
-    # TODO: Task 2a finish the implementation
-    pass
+    text  = "12340f0f" + "0f0f" * (MAC_size // 4 - 2)   #generate variable size message depending on mac size
+    ms1   = bytes(text, "utf-8")
+    state = KeeLoq_CBC_enc(ms1, b'\00\00\00\00', K)[:4] #get the first inner state
+    ms2   = XOR(state, ms1[4:8]) + ms1[8:]              #forge second message
+    return (ms1, ms2)
 
 
 def SHA1_collision() -> Tuple[bytes, bytes]:
@@ -34,3 +40,11 @@ def MAC_combined_collision(Keeloq_MAC_size: int=4) -> Tuple[bytes, bytes, bytes,
     """
     # TODO: Task 2c finish the implementation
     pass
+
+key      = b'\01\23\45\67\89\ab\cd\ef'
+mac_size = 4
+messages = MAC_Keeloq_collision(key, mac_size)
+print(f"m1: {messages[0].hex()}")
+print(f"m2: {messages[1].hex()}")
+print(f"MAC1: {MAC_KeeLoq(messages[0], key, mac_size).hex()}")
+print(f"MAC2: {MAC_KeeLoq(messages[1], key, mac_size).hex()}")

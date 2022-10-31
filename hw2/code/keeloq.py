@@ -126,12 +126,13 @@ def KeeLoq_CBC_enc(msg: bytes, IV: bytes, K: bytes) -> bytes:
     :return: Keeloq CBC ciphertext
     """
     #pad the message
-    msg += PKCS7_padding(len(msg), KEELOQ_BYTE_BLOCK_SIZE)
-    res = bytes()
+    padded = bytes(msg)
+    padded += PKCS7_padding(len(msg), KEELOQ_BYTE_BLOCK_SIZE)
+    res     = bytes()
     
     #go through every block and encrypt it
-    for i in range(0, len(msg) // KEELOQ_BYTE_BLOCK_SIZE):
-        pt_block = msg[i * KEELOQ_BYTE_BLOCK_SIZE : (i + 1) * KEELOQ_BYTE_BLOCK_SIZE]
+    for i in range(0, len(padded) // KEELOQ_BYTE_BLOCK_SIZE):
+        pt_block = padded[i * KEELOQ_BYTE_BLOCK_SIZE : (i + 1) * KEELOQ_BYTE_BLOCK_SIZE]
         xored    = XOR(pt_block, IV)
         ct_block = KeeLoq_enc(xored, K)
         IV       = ct_block
