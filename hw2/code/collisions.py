@@ -4,6 +4,7 @@ from macs import MAC_KeeLoq, SHA1
 from utils import XOR
 from keeloq import KEELOQ_BYTE_BLOCK_SIZE
 
+
 BLOCK_SIZE = KEELOQ_BYTE_BLOCK_SIZE
 
 def MAC_Keeloq_collision(K: bytes, MAC_size: int) -> Tuple[bytes, bytes]:
@@ -60,19 +61,33 @@ def MAC_combined_collision(Keeloq_MAC_size: int=4) -> Tuple[bytes, bytes, bytes,
     # TODO: Task 2c finish the implementation
     #Keeloq_MAC_size <= 4
     m1, m2 = SHA1_collision()
-    k1 = secrets.token_bytes(8)
-    mac1 = MAC_KeeLoq(m1, k1, Keeloq_MAC_size)
+    #mac1 = MAC_KeeLoq(m1, k1, Keeloq_MAC_size)
 
-    k2 = mac1
-    print(mac1.hex())
+    #k2 = mac1
+    #print(mac1.hex())
     cnt = 0
-    
+
+    #k1 = ""
+    #k2 = ""
+    macs1 = dict()
+    macs2 = dict()
     while(True):
-        k2 = MAC_KeeLoq(m2, b'\00\00\00\00' + k2, Keeloq_MAC_size)
-        if mac1 == k2:
+        key = secrets.token_bytes(8)
+        mac1 = MAC_KeeLoq(m1, key, Keeloq_MAC_size)
+        mac2 = MAC_KeeLoq(m2, key, Keeloq_MAC_size)
+        macs1[mac1] = key
+        macs2[mac2] = key
+        if mac1 in macs2:
+            k1 = key
+            k2 = macs2[mac1]
             break
+        if mac2 in macs1:
+            k2 = key
+            k1 = macs1[mac2]
+            break
+        
         if cnt % 1000 == 0:
-            print(f"{cnt}/{2**(4*8)} {k2.hex()}")
+            print(f"{cnt}/{2**(4*8)} {key.hex()}")
         cnt += 1
 
     return (m1, k1, m2, k2)
