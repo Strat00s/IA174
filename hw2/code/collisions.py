@@ -58,7 +58,6 @@ def MAC_combined_collision(Keeloq_MAC_size: int=4) -> Tuple[bytes, bytes, bytes,
 
     :return: a quadruple (msg1, key1, msg2, key2)
     """
-    # TODO: Task 2c finish the implementation
     #Keeloq_MAC_size <= 4
     m1, m2 = SHA1_collision()
     #mac1 = MAC_KeeLoq(m1, k1, Keeloq_MAC_size)
@@ -94,7 +93,7 @@ def MAC_combined_collision(Keeloq_MAC_size: int=4) -> Tuple[bytes, bytes, bytes,
 
 
 key      = b'\01\23\45\67\89\ab\cd\ef'
-mac_size = 4
+mac_size = 80
 messages = MAC_Keeloq_collision(key, mac_size)
 print("Task 2a:")
 print(f"m1: {messages[0].hex()}")
