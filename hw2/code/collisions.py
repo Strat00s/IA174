@@ -18,10 +18,10 @@ def MAC_Keeloq_collision(K: bytes, MAC_size: int) -> Tuple[bytes, bytes]:
     if MAC_size > ms_len:
         ms_len += BLOCK_SIZE * (MAC_size // BLOCK_SIZE - 2)
 
-    ms1 = secrets.token_bytes(ms_len)                                         #generate variable size message depending on mac size (but at least 2 blocks)
-    state = MAC_KeeLoq(ms1[:BLOCK_SIZE], K, BLOCK_SIZE * 2)[:BLOCK_SIZE]        #get the first inner state (second one contains padding)
-    ms2   = XOR(state, ms1[BLOCK_SIZE:BLOCK_SIZE * 2]) + ms1[BLOCK_SIZE * 2:]   #forge second message
-    return (ms1, ms2)
+    m1 = secrets.token_bytes(ms_len)                                        #generate variable size message depending on mac size (but at least 2 blocks)
+    state = MAC_KeeLoq(m1[:BLOCK_SIZE], K, BLOCK_SIZE * 2)[:BLOCK_SIZE]     #get the first inner state (second one contains padding)
+    m2   = XOR(state, m1[BLOCK_SIZE:BLOCK_SIZE * 2]) + m1[BLOCK_SIZE * 2:]  #forge second message
+    return (m1, m2)
 
 
 def SHA1_collision() -> Tuple[bytes, bytes]:
@@ -58,18 +58,50 @@ def MAC_combined_collision(Keeloq_MAC_size: int=4) -> Tuple[bytes, bytes, bytes,
     :return: a quadruple (msg1, key1, msg2, key2)
     """
     # TODO: Task 2c finish the implementation
-    pass
+    #Keeloq_MAC_size <= 4
+    m1, m2 = SHA1_collision()
+    k1 = secrets.token_bytes(8)
+    mac1 = MAC_KeeLoq(m1, k1, Keeloq_MAC_size)
+
+    k2 = mac1
+    print(mac1.hex())
+    cnt = 0
+    
+    while(True):
+        k2 = MAC_KeeLoq(m2, b'\00\00\00\00' + k2, Keeloq_MAC_size)
+        if mac1 == k2:
+            break
+        if cnt % 1000 == 0:
+            print(f"{cnt}/{2**(4*8)} {k2.hex()}")
+        cnt += 1
+
+    return (m1, k1, m2, k2)
+
 
 key      = b'\01\23\45\67\89\ab\cd\ef'
 mac_size = 4
 messages = MAC_Keeloq_collision(key, mac_size)
+print("Task 2a:")
 print(f"m1: {messages[0].hex()}")
 print(f"m2: {messages[1].hex()}")
 print(f"MAC1: {MAC_KeeLoq(messages[0], key, mac_size).hex()}")
 print(f"MAC2: {MAC_KeeLoq(messages[1], key, mac_size).hex()}")
+print("-----------------------------------------")
 
 messages = SHA1_collision()
+print("Task 2b:")
 print(f"m1: {messages[0].hex()}")
 print(f"m2: {messages[1].hex()}")
 print(f"SHA11: {SHA1(messages[0]).hex()}")
 print(f"SHA12: {SHA1(messages[1]).hex()}")
+print("-----------------------------------------")
+
+mac_size = 4
+pairs = MAC_combined_collision(mac_size)
+print("Task 2c:")
+print(f"m1: {pairs[0].hex()}")
+print(f"k1: {pairs[1].hex()}")
+print(f"m2: {pairs[2].hex()}")
+print(f"k2: {pairs[3].hex()}")
+print(f"SHA11: {SHA1(MAC_KeeLoq(pairs[0], pairs[1], mac_size)).hex()}")
+print(f"SHA12: {SHA1(MAC_KeeLoq(pairs[2], pairs[3], mac_size)).hex()}")

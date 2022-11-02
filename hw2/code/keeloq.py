@@ -126,7 +126,7 @@ def KeeLoq_CBC_enc(msg: bytes, IV: bytes, K: bytes) -> bytes:
     :return: Keeloq CBC ciphertext
     """
     #pad the message
-    padded = bytes(msg)
+    padded  = bytes(msg)
     padded += PKCS7_padding(len(msg), KEELOQ_BYTE_BLOCK_SIZE)
     res     = bytes()
     

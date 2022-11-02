@@ -1,5 +1,6 @@
 import hashlib
-from keeloq import KeeLoq_CBC_enc
+from keeloq import KeeLoq_enc, PKCS7_padding, KEELOQ_BYTE_BLOCK_SIZE
+from utils import XOR
 
 def SHA1(msg: bytes) -> bytes:
     """
@@ -47,6 +48,17 @@ def MAC_KeeLoq(msg: bytes, K: bytes, MAC_size: int=4) -> bytes:
     :param MAC_size: the size of the final MAC (in bytes)
     :return: MAC of size MAC_size
     """
+    #pad the message
+    padded  = bytes(msg) + PKCS7_padding(len(msg), KEELOQ_BYTE_BLOCK_SIZE)
+    res = bytes()
+    ct_block = b'\00\00\00\00'
+    blocks = len(padded) // KEELOQ_BYTE_BLOCK_SIZE
+    for i in range(0, blocks):
+        pt_block = padded[i * KEELOQ_BYTE_BLOCK_SIZE : (i + 1) * KEELOQ_BYTE_BLOCK_SIZE]
+        ct_block = KeeLoq_enc(XOR(pt_block, ct_block), K)
+        if blocks - i <= MAC_size // KEELOQ_BYTE_BLOCK_SIZE:
+            res     += ct_block
+    return res
     return KeeLoq_CBC_enc(msg, b'\00\00\00\00', K)[-MAC_size:]
 
 def MAC_combined(msg: bytes, K: bytes, MAC_size=4) -> bytes:
