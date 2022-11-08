@@ -3,6 +3,9 @@ import secrets
 from macs import MAC_KeeLoq, SHA1
 from utils import XOR
 from keeloq import KEELOQ_BYTE_BLOCK_SIZE
+"""uncoment commented sections for multiprocessing and comment out 'MAC_combined_collision' and lines 133 - 159"""
+#from multiprocessing import Pool
+#from functools import reduce
 
 
 BLOCK_SIZE = KEELOQ_BYTE_BLOCK_SIZE
@@ -58,16 +61,7 @@ def MAC_combined_collision(Keeloq_MAC_size: int=4) -> Tuple[bytes, bytes, bytes,
 
     :return: a quadruple (msg1, key1, msg2, key2)
     """
-    #Keeloq_MAC_size <= 4
     m1, m2 = SHA1_collision()
-    #mac1 = MAC_KeeLoq(m1, k1, Keeloq_MAC_size)
-
-    #k2 = mac1
-    #print(mac1.hex())
-    cnt = 0
-
-    #k1 = ""
-    #k2 = ""
     macs1 = dict()
     macs2 = dict()
     while(True):
@@ -84,12 +78,56 @@ def MAC_combined_collision(Keeloq_MAC_size: int=4) -> Tuple[bytes, bytes, bytes,
             k2 = key
             k1 = macs1[mac2]
             break
-        
-        if cnt % 1000 == 0:
-            print(f"{cnt}/{2**(4*8)} {key.hex()}")
-        cnt += 1
 
     return (m1, k1, m2, k2)
+
+#def multiprocessing_func(data):
+#    keys = data[0]
+#    m1 = data[1]
+#    m2 = data[2]
+#    mac_size = data[3]
+#    result = list()
+#    for key in keys:
+#        mac1 = MAC_KeeLoq(m1, key, mac_size)
+#        mac2 = MAC_KeeLoq(m2, key, mac_size)
+#        result.append((mac1, mac2, key))
+#    return result
+#
+#def MAC_combined_collision(Keeloq_MAC_size: int=4) -> Tuple[bytes, bytes, bytes, bytes]:
+#    NPROC = 12 #Numer of available processors
+#    pool = Pool(NPROC)
+#    
+#    ms_dict = dict()
+#    step = 0
+#    mac1_dict = dict()
+#    mac2_dict = dict()
+#
+#    m1, m2 = SHA1_collision()
+#
+#    while True:
+#        step += 1000
+#        results = pool.map(multiprocessing_func, [[[secrets.token_bytes(8) for j in range(step)], m1, m2, Keeloq_MAC_size] for i in range(NPROC + 1)])
+#        results = reduce(lambda x, y: x + y, results)
+#
+#        for mac1, mac2, key in results:
+#            if mac1 in mac2_dict:
+#                k1 = key
+#                k2 = mac2_dict[mac1]
+#                break
+#            else:
+#                mac1_dict[mac1] = key
+#            if mac2 in mac1_dict:
+#                k2 = key
+#                k1 = mac1_dict[mac2]
+#                break
+#            else:
+#                mac2_dict[mac2] = key
+#        else:
+#            print(f"{len(mac1_dict)} {len(mac2_dict)}")     #"progress"
+#            continue
+#        break
+#
+#    return (m1, k1, m2, k2)
 
 
 key      = b'\01\23\45\67\89\ab\cd\ef'
@@ -119,3 +157,34 @@ print(f"m2: {pairs[2].hex()}")
 print(f"k2: {pairs[3].hex()}")
 print(f"SHA11: {SHA1(MAC_KeeLoq(pairs[0], pairs[1], mac_size)).hex()}")
 print(f"SHA12: {SHA1(MAC_KeeLoq(pairs[2], pairs[3], mac_size)).hex()}")
+
+#if __name__=='__main__':
+#    key      = b'\01\23\45\67\89\ab\cd\ef'
+#    mac_size = 80
+#    messages = MAC_Keeloq_collision(key, mac_size)
+#    print("Task 2a:")
+#    print(f"m1: {messages[0].hex()}")
+#    print(f"m2: {messages[1].hex()}")
+#    print(f"MAC1: {MAC_KeeLoq(messages[0], key, mac_size).hex()}")
+#    print(f"MAC2: {MAC_KeeLoq(messages[1], key, mac_size).hex()}")
+#    print("-----------------------------------------")
+#
+#    messages = SHA1_collision()
+#    print("Task 2b:")
+#    print(f"m1: {messages[0].hex()}")
+#    print(f"m2: {messages[1].hex()}")
+#    print(f"SHA11: {SHA1(messages[0]).hex()}")
+#    print(f"SHA12: {SHA1(messages[1]).hex()}")
+#    print("-----------------------------------------")
+#
+#    mac_size = 4
+#    pairs = MAC_combined_collision(mac_size)
+#    print("Task 2c:")
+#    print(f"m1: {pairs[0].hex()}")
+#    print(f"k1: {pairs[1].hex()}")
+#    print(f"m2: {pairs[2].hex()}")
+#    print(f"k2: {pairs[3].hex()}")
+#    print(f"MAC1: {MAC_KeeLoq(pairs[0], pairs[1], mac_size).hex()}")
+#    print(f"MAC2: {MAC_KeeLoq(pairs[2], pairs[3], mac_size).hex()}")
+#    print(f"SHA11: {SHA1(MAC_KeeLoq(pairs[0], pairs[1], mac_size)).hex()}")
+#    print(f"SHA12: {SHA1(MAC_KeeLoq(pairs[2], pairs[3], mac_size)).hex()}")
