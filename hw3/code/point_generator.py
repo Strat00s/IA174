@@ -1,23 +1,36 @@
-from math import sqrt
+#from math import sqrt
+from decimal import Decimal, getcontext
+from ec import Mod
 
 p = 0x586be5268256ae12d62631efc2784d02dcff420d262da9cd94c62d5808bee24d
-a = 0x7e7
+a = 2023 #0x7e7
 b = 0x0
+
+print(p)
 
 n1 = 940258296925944608662895221235664431210
 n2 = 42535295865117307932921825928971027169
 
-#y*y = x*x*x + a*x + b
+pub_x = 0x1a9112ae9ac6b30cb8f899f9ed76b4c3826b758d5c98a840afd9eee17d09fe73
+pub_y = 0x39525bafcf33493141fd3f57d170f69af4ce41cd76ddb0f418781db2b4da5a8c
 
-#find int x while increasing y
+gen_x = 8623921449832446842680428628808345870469262935889106435699633630097494798539
+gen_y = 27800225477198898698267433209132472484206509162888008502562321340387070167498
 
-point_cnt = 10
-x = 1
-while point_cnt:
-    y = sqrt((x*x*x + a*x + b) % (n1 * n2))
-    if y.is_integer():
+getcontext().prec=100
+print(Decimal(((gen_x**3) % p + (a * gen_x) % p) % p).sqrt())
+print((gen_y ** 2) % p)
+
+x = p
+while True:
+    getcontext().prec=100
+    y = Decimal(((x*x*x) + a * x) % p).sqrt()
+    if y % 1 == 0:
         print(f"x: {x}")
         print(f"y: {int(y)}")
-        print("-------------")
-        point_cnt -= 1
-    x += 1
+        print((int(y) ** 2) % p == (x ** 3 + a * x + b) % p)
+    x -= 1
+
+#x = 8623921449832446842680428628808345870469262935889106435699633630097494798539
+#y = 27800225477198898698267433209132472484206509162888008502562321340387070167498
+#print(f"{y ** 2} = {x ** 3 + a * x + b}")
