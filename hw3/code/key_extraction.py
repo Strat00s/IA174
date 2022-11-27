@@ -82,12 +82,16 @@ for factor in factors:
 
 print(f"\nRemainders: {remainders}")
 
-#get the key using crt
-generator = ecurve.point((gen_x, gen_y))    #peters generator
-pubkey    = ecurve.point((pub_x, pub_y))    #peters public key
+#get public key and generate the secret key using crt
+data = {"x": f"{hex(int(so_point[0]))}", "y": f"{hex(int(so_point[1]))}"}
+response = APICall("easy", "pubkey", "492875")
+if response == None:
+    exit()
+pubkey    = ecurve.point((int(response["x"], 16), int(response["y"], 16)))  #peters public key
+generator = ecurve.point((gen_x, gen_y))                                    #peters generator from ce.py
 key       = crt(remainders, factors)
 
-#keep adding product factors to key if not enough factors were used in the first place (moght not be needed when using all but last n2 factor)
+#keep adding factors product to key if not enough factors were used in the first place (might not be needed when using all but last n2 factor)
 while generator * key != pubkey:
     key += prod(factors)
 
