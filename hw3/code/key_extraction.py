@@ -46,7 +46,7 @@ factors = [x**y for (x, y) in order.factor()][:-1]  #don't use n2, as it is too 
 
 print(f"Curve: {ecurve}")
 print(f"  Order:   {order}")
-print(f"  Factors: {factors}")
+print(f"  Factors: {order.factor()}")
 
 remainders = list()
 #generate remainders by calling api with points of small order (factor)
@@ -55,12 +55,15 @@ for factor in factors:
 
     #generate points of specific order
     while so_point.order() != factor:
-        rng_point = ecurve.random_point()   #practically guaranteed to be a generator
+        #get a generator
+        rng_point = ecurve.point((0, 1, 0))
+        while not isGenerator(rng_point, ecurve):
+            rng_point = ecurve.random_point()   #practically guaranteed to be a generator
         so_point  = rng_point * (order // factor)
 
     print(f"\nSmall order point: {so_point}")
-    print(f"  Factor: {factor}")
-    print(f"  Order:  {order}")
+    print(f"  Order:   {so_point.order()}")
+    print(f"  Factors: {so_point.order().factor()}")
 
     #get secret
     data = {"x": f"{hex(int(so_point[0]))}", "y": f"{hex(int(so_point[1]))}"}
@@ -83,7 +86,6 @@ for factor in factors:
 print(f"\nRemainders: {remainders}")
 
 #get public key and generate the secret key using crt
-data = {"x": f"{hex(int(so_point[0]))}", "y": f"{hex(int(so_point[1]))}"}
 response = APICall("easy", "pubkey", "492875")
 if response == None:
     exit()

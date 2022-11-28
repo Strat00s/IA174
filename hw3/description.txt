@@ -1,0 +1,13 @@
+Task1.1: Create the curve in sage and get random point. Test if the point * factors of the curve order do not generate neutral point and point * curve order does. If so, this point is a generator.
+Tasl1.2: I pretty much just followed the explanation of the attack.
+    1. Get all/most of small curve order factors an go through them (but only small ones, as for big ones it would be unfeasable to test all the point iterations; so don't use n2 in our case)
+        2. Generate a point with order == factor (first get a generator, then create the point: generator * (order / factor))
+        3. Send the point to 'ecdh' endpoint and get the secret
+        Since peter multiplies the point with his 'secret_key', we can now get some information about the key
+        4. Create a copy of the point. Take the point, apply compress function from 'ec.py' and check wheter or not the hash matches the secret.
+            If the secret is different, add the point copy to the point and repeat (slowly "looping" through all the point iterations up to neutral element)
+            If they are the same, we now know that the 'secret_key' = (number of additions) % (point factor). Save this remainder
+            (If we manage to loop through all iterations and don't find a match, just save 0 as the remainder)
+    5. After going through all factors (and points) we now have a list of remainders to which we can apply the chinese remainde theorem to get the "basis" of the 'key'
+    6. Get Petr's 'generator' from 'ec.py', his 'public_key' from pubkey endpoint and test that 'key' * 'generator' = 'public_key'
+        If not, we need to get the product of all used factors and keep adding it to the key untill it is true -> we now have Pete's secret key.
